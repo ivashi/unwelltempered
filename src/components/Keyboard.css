@@ -1,0 +1,89 @@
+.keyboard-wrap {
+  position: relative;
+  height: 200px;
+  user-select: none;
+  touch-action: none;
+}
+
+.key {
+  position: absolute;
+  bottom: 0;
+  border-radius: 0 0 6px 6px;
+  cursor: pointer;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: flex-end;
+  transition: background 0.05s;
+}
+
+.key.white {
+  background: #fafaf8;
+  border: 1px solid #d4d0c8;
+  border-top: none;
+  height: 200px;
+  z-index: 1;
+}
+
+.key.white:hover {
+  background: #e8f0fe;
+}
+
+.key.white.active {
+  background: #c7d9fd;
+  border-color: #93b4f0;
+}
+
+.key.black {
+  background: #1a1917;
+  border: 1px solid #0a0a09;
+  border-top: none;
+  height: 125px;
+  z-index: 2;
+}
+
+.key.black:hover {
+  background: #2d2c29;
+}
+
+.key.black.active {
+  background: #1e3a6e;
+}
+
+.key-bottom {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 2px;
+  padding-bottom: 8px;
+}
+
+.key-note {
+  font-size: 10px;
+  font-weight: 600;
+  color: #888;
+  font-family: 'DM Mono', monospace;
+}
+
+.key.black .key-note {
+  color: #555;
+}
+
+.key.active .key-note {
+  color: #2563eb;
+}
+
+.key.black.active .key-note {
+  color: #93b4f0;
+}
+
+.key-kb {
+  font-size: 9px;
+  color: #bbb;
+  font-family: 'DM Mono', monospace;
+  letter-spacing: 0.02em;
+}
+
+.key.black .key-kb {
+  color: #444;
+}
