@@ -89,12 +89,19 @@ export const TUNING_GROUPS = [
   },
 ]
 
-export function getFrequency(midiNote, tuningKey, a4 = 440) {
+export function getFrequency(midiNote, tuningKey, a4 = 440, options = {}) {
   const t = TUNINGS[tuningKey]
   const a4midi = 69
   const semiFromA4 = midiNote - a4midi
   const octaveOffset = Math.floor(semiFromA4 / 12)
   const semi = ((semiFromA4 % 12) + 12) % 12
+
+  // Custom equal temperament: generalised n-TET with variable octave ratio
+  if (tuningKey === 'equal') {
+    const divisions = options.divisions ?? 12
+    const octaveRatio = options.octaveRatio ?? 2
+    return a4 * Math.pow(octaveRatio, semiFromA4 / divisions)
+  }
 
   if (t.centOffsets) {
     const centOff = t.centOffsets[semi]

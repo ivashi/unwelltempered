@@ -3,6 +3,7 @@ import Keyboard from './components/Keyboard'
 import TuningPanel from './components/TuningPanel'
 import CentsDisplay from './components/CentsDisplay'
 import LoopPanel from './components/LoopPanel'
+import Oscilloscope from './components/Oscilloscope'
 import { useAudioEngine } from './hooks/useAudioEngine'
 import { useKeyboardInput } from './hooks/useKeyboardInput'
 import { useLooper } from './hooks/useLooper'
@@ -25,18 +26,21 @@ export default function App() {
   const [activeNotes, setActiveNotes] = useState(new Set())
   const [lastNote, setLastNote] = useState(null)
   const [sidebarTab, setSidebarTab] = useState('tuning')
+  const [equalDivisions, setEqualDivisions] = useState(12)
+  const [equalOctaveRatio, setEqualOctaveRatio] = useState(2)
 
-  const { playNote, stopNote, stopAll } = useAudioEngine()
+  const { playNote, stopNote, stopAll, analyserRef } = useAudioEngine()
 
   const { status: loopStatus, loopDuration, recordElapsed, hasLoop, startRecording, stopRecording, startPlaying, stopPlaying, recordEvent } =
-    useLooper({ playNote, stopNote, stopAll, tuningKey, a4, waveform })
+    useLooper({ playNote, stopNote, stopAll, tuningKey, a4, waveform, equalDivisions, equalOctaveRatio })
 
   const handleNoteOn = useCallback((midi) => {
-    const freq = playNote(midi, tuningKey, a4, waveform)
+    const opts = tuningKey === 'equal' ? { divisions: equalDivisions, octaveRatio: equalOctaveRatio } : {}
+    const freq = playNote(midi, tuningKey, a4, waveform, opts)
     setActiveNotes(prev => new Set([...prev, midi]))
     setLastNote({ midi, freq, name: NOTE_NAMES[midi % 12], oct: Math.floor(midi / 12) - 1 })
     recordEvent('on', midi)
-  }, [playNote, tuningKey, a4, waveform, recordEvent])
+  }, [playNote, tuningKey, a4, waveform, equalDivisions, equalOctaveRatio, recordEvent])
 
   const handleNoteOff = useCallback((midi) => {
     stopNote(midi)
@@ -134,10 +138,76 @@ export default function App() {
           <div className="tuning-info-card">
             <div className="tuning-info-header">
               <div className="tuning-info-name">{t.name}</div>
-              {t.short && t.short !== t.name && <div className="tuning-info-short">{t.short}</div>}
-              <div className="tuning-info-era">{t.era}</div>
+              {tuningKey === 'equal' ? (
+                <div className="tuning-info-short">
+                  {Number.isInteger(equalDivisions) ? equalDivisions : equalDivisions.toFixed(1)}-TET
+                  {equalOctaveRatio !== 2 ? ` · ${equalOctaveRatio.toFixed(2)}:1` : ''}
+                </div>
+              ) : (
+                t.short && t.short !== t.name && <div className="tuning-info-short">{t.short}</div>
+              )}
+              <div className="tuning-info-era">
+                {tuningKey === 'equal' && (equalDivisions !== 12 || equalOctaveRatio !== 2) ? 'Custom' : t.era}
+              </div>
             </div>
             <p className="tuning-info-desc">{t.desc}</p>
+
+            {tuningKey === 'equal' && (
+              <div className="equal-custom">
+                <div className="equal-slider-row">
+                  <div className="equal-slider-header">
+                    <span className="equal-slider-label">Steps per octave</span>
+                    <span className="equal-slider-value">
+                      {Number.isInteger(equalDivisions) ? equalDivisions : equalDivisions.toFixed(1)}
+                    </span>
+                  </div>
+                  <input
+                    type="range"
+                    className="equal-slider"
+                    min="5"
+                    max="48"
+                    step="0.5"
+                    value={equalDivisions}
+                    onChange={e => setEqualDivisions(Number(e.target.value))}
+                  />
+                  <span className="equal-slider-sub">
+                    ratio {Math.pow(equalOctaveRatio, 1 / equalDivisions).toFixed(5)} · {(Math.log2(equalOctaveRatio) * 1200 / equalDivisions).toFixed(1)}¢ / step
+                  </span>
+                </div>
+
+                <div className="equal-slider-row">
+                  <div className="equal-slider-header">
+                    <span className="equal-slider-label">Octave ratio</span>
+                    <span className="equal-slider-value">{equalOctaveRatio.toFixed(2)} : 1</span>
+                  </div>
+                  <input
+                    type="range"
+                    className="equal-slider"
+                    min="1.5"
+                    max="2.5"
+                    step="0.01"
+                    value={equalOctaveRatio}
+                    onChange={e => setEqualOctaveRatio(Number(e.target.value))}
+                  />
+                  <span className="equal-slider-sub">
+                    {equalOctaveRatio === 2
+                      ? 'standard octave'
+                      : equalOctaveRatio < 2
+                      ? `compressed  (${((equalOctaveRatio / 2 - 1) * 100).toFixed(1)}%)`
+                      : `stretched  (+${((equalOctaveRatio / 2 - 1) * 100).toFixed(1)}%)`}
+                  </span>
+                </div>
+
+                {(equalDivisions !== 12 || equalOctaveRatio !== 2) && (
+                  <button
+                    className="equal-reset-btn"
+                    onClick={() => { setEqualDivisions(12); setEqualOctaveRatio(2) }}
+                  >
+                    reset to 12-TET
+                  </button>
+                )}
+              </div>
+            )}
           </div>
 
           <div className="note-display">
@@ -150,6 +220,8 @@ export default function App() {
               <span className="note-display-hint">press a key · keyboard: A – ; spans two octaves</span>
             )}
           </div>
+
+          <Oscilloscope analyserRef={analyserRef} />
 
           <div className="keyboard-container">
             <Keyboard baseOctave={baseOctave} activeNotes={activeNotes} onNoteOn={handleNoteOn} onNoteOff={handleNoteOff} />

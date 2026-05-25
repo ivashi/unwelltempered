@@ -7,7 +7,7 @@
 
 .key {
   position: absolute;
-  bottom: 0;
+  top: 0;
   border-radius: 0 0 6px 6px;
   cursor: pointer;
   display: flex;

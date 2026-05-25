@@ -2,7 +2,7 @@ import { useState, useRef, useCallback, useEffect } from 'react'
 
 const MAX_MS = 10000
 
-export function useLooper({ playNote, stopNote, stopAll, tuningKey, a4, waveform }) {
+export function useLooper({ playNote, stopNote, stopAll, tuningKey, a4, waveform, equalDivisions = 12, equalOctaveRatio = 2 }) {
   const [status, setStatus] = useState('idle')
   const [loopDuration, setLoopDuration] = useState(0)
   const [recordElapsed, setRecordElapsed] = useState(0)
@@ -20,9 +20,13 @@ export function useLooper({ playNote, stopNote, stopAll, tuningKey, a4, waveform
   const tuningKeyRef = useRef(tuningKey)
   const a4Ref = useRef(a4)
   const waveformRef = useRef(waveform)
+  const equalDivisionsRef = useRef(equalDivisions)
+  const equalOctaveRatioRef = useRef(equalOctaveRatio)
   useEffect(() => { tuningKeyRef.current = tuningKey }, [tuningKey])
   useEffect(() => { a4Ref.current = a4 }, [a4])
   useEffect(() => { waveformRef.current = waveform }, [waveform])
+  useEffect(() => { equalDivisionsRef.current = equalDivisions }, [equalDivisions])
+  useEffect(() => { equalOctaveRatioRef.current = equalOctaveRatio }, [equalOctaveRatio])
 
   const stopRecording = useCallback(() => {
     if (statusRef.current !== 'recording') return
@@ -82,7 +86,12 @@ export function useLooper({ playNote, stopNote, stopAll, tuningKey, a4, waveform
       savedEventsRef.current.forEach(({ type, midi, t }) => {
         const id = setTimeout(() => {
           if (statusRef.current !== 'playing') return
-          if (type === 'on') playNote(midi, tuningKeyRef.current, a4Ref.current, waveformRef.current)
+          if (type === 'on') {
+            const opts = tuningKeyRef.current === 'equal'
+              ? { divisions: equalDivisionsRef.current, octaveRatio: equalOctaveRatioRef.current }
+              : {}
+            playNote(midi, tuningKeyRef.current, a4Ref.current, waveformRef.current, opts)
+          }
           else stopNote(midi)
         }, t)
         timeoutsRef.current.push(id)
