@@ -2,8 +2,10 @@ import { useState, useCallback } from 'react'
 import Keyboard from './components/Keyboard'
 import TuningPanel from './components/TuningPanel'
 import CentsDisplay from './components/CentsDisplay'
+import LoopPanel from './components/LoopPanel'
 import { useAudioEngine } from './hooks/useAudioEngine'
 import { useKeyboardInput } from './hooks/useKeyboardInput'
+import { useLooper } from './hooks/useLooper'
 import { TUNINGS, NOTE_NAMES } from './lib/tunings'
 import './App.css'
 
@@ -26,11 +28,15 @@ export default function App() {
 
   const { playNote, stopNote, stopAll } = useAudioEngine()
 
+  const { status: loopStatus, loopDuration, recordElapsed, hasLoop, startRecording, stopRecording, startPlaying, stopPlaying, recordEvent } =
+    useLooper({ playNote, stopNote, stopAll, tuningKey, a4, waveform })
+
   const handleNoteOn = useCallback((midi) => {
     const freq = playNote(midi, tuningKey, a4, waveform)
     setActiveNotes(prev => new Set([...prev, midi]))
     setLastNote({ midi, freq, name: NOTE_NAMES[midi % 12], oct: Math.floor(midi / 12) - 1 })
-  }, [playNote, tuningKey, a4, waveform])
+    recordEvent('on', midi)
+  }, [playNote, tuningKey, a4, waveform, recordEvent])
 
   const handleNoteOff = useCallback((midi) => {
     stopNote(midi)
@@ -39,7 +45,8 @@ export default function App() {
       next.delete(midi)
       return next
     })
-  }, [stopNote])
+    recordEvent('off', midi)
+  }, [stopNote, recordEvent])
 
   useKeyboardInput({ baseOctave, onNoteOn: handleNoteOn, onNoteOff: handleNoteOff })
 
@@ -94,17 +101,31 @@ export default function App() {
               Tuning
             </button>
             <button className={`sidebar-tab${sidebarTab === 'cents' ? ' active' : ''}`} onClick={() => setSidebarTab('cents')}>
-              Deviation
+              Dev
+            </button>
+            <button className={`sidebar-tab${sidebarTab === 'loop' ? ' active' : ''}`} onClick={() => setSidebarTab('loop')}>
+              Loop
             </button>
           </div>
           <div className="sidebar-content">
             {sidebarTab === 'tuning' ? (
               <TuningPanel currentTuning={tuningKey} onChange={handleTuningChange} />
-            ) : (
+            ) : sidebarTab === 'cents' ? (
               <div>
                 <div className="cents-section-title">{t.name}</div>
                 <CentsDisplay tuningKey={tuningKey} />
               </div>
+            ) : (
+              <LoopPanel
+                status={loopStatus}
+                loopDuration={loopDuration}
+                recordElapsed={recordElapsed}
+                hasLoop={hasLoop}
+                onStartRecording={startRecording}
+                onStopRecording={stopRecording}
+                onStartPlaying={startPlaying}
+                onStopPlaying={stopPlaying}
+              />
             )}
           </div>
         </aside>
