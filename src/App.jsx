@@ -1,13 +1,12 @@
 import { useState, useCallback } from 'react'
 import Keyboard from './components/Keyboard'
 import TuningPanel from './components/TuningPanel'
-import CentsDisplay from './components/CentsDisplay'
-import LoopPanel from './components/LoopPanel'
+import IntervalWheel from './components/IntervalWheel'
 import Oscilloscope from './components/Oscilloscope'
 import { useAudioEngine } from './hooks/useAudioEngine'
 import { useKeyboardInput } from './hooks/useKeyboardInput'
 import { useLooper } from './hooks/useLooper'
-import { TUNINGS, NOTE_NAMES } from './lib/tunings'
+import { TUNINGS } from './lib/tunings'
 import './App.css'
 
 const WAVEFORMS = ['triangle', 'sine', 'square', 'sawtooth']
@@ -24,8 +23,6 @@ export default function App() {
   const [a4, setA4] = useState(440)
   const [waveform, setWaveform] = useState('triangle')
   const [activeNotes, setActiveNotes] = useState(new Set())
-  const [lastNote, setLastNote] = useState(null)
-  const [sidebarTab, setSidebarTab] = useState('tuning')
   const [equalDivisions, setEqualDivisions] = useState(12)
   const [equalOctaveRatio, setEqualOctaveRatio] = useState(2)
 
@@ -36,9 +33,8 @@ export default function App() {
 
   const handleNoteOn = useCallback((midi) => {
     const opts = tuningKey === 'equal' ? { divisions: equalDivisions, octaveRatio: equalOctaveRatio } : {}
-    const freq = playNote(midi, tuningKey, a4, waveform, opts)
+    playNote(midi, tuningKey, a4, waveform, opts)
     setActiveNotes(prev => new Set([...prev, midi]))
-    setLastNote({ midi, freq, name: NOTE_NAMES[midi % 12], oct: Math.floor(midi / 12) - 1 })
     recordEvent('on', midi)
   }, [playNote, tuningKey, a4, waveform, equalDivisions, equalOctaveRatio, recordEvent])
 
@@ -100,37 +96,8 @@ export default function App() {
 
       <div className="app-body">
         <aside className="sidebar">
-          <div className="sidebar-tabs">
-            <button className={`sidebar-tab${sidebarTab === 'tuning' ? ' active' : ''}`} onClick={() => setSidebarTab('tuning')}>
-              Tuning
-            </button>
-            <button className={`sidebar-tab${sidebarTab === 'cents' ? ' active' : ''}`} onClick={() => setSidebarTab('cents')}>
-              Dev
-            </button>
-            <button className={`sidebar-tab${sidebarTab === 'loop' ? ' active' : ''}`} onClick={() => setSidebarTab('loop')}>
-              Loop
-            </button>
-          </div>
           <div className="sidebar-content">
-            {sidebarTab === 'tuning' ? (
-              <TuningPanel currentTuning={tuningKey} onChange={handleTuningChange} />
-            ) : sidebarTab === 'cents' ? (
-              <div>
-                <div className="cents-section-title">{t.name}</div>
-                <CentsDisplay tuningKey={tuningKey} />
-              </div>
-            ) : (
-              <LoopPanel
-                status={loopStatus}
-                loopDuration={loopDuration}
-                recordElapsed={recordElapsed}
-                hasLoop={hasLoop}
-                onStartRecording={startRecording}
-                onStopRecording={stopRecording}
-                onStartPlaying={startPlaying}
-                onStopPlaying={stopPlaying}
-              />
-            )}
+            <TuningPanel currentTuning={tuningKey} onChange={handleTuningChange} />
           </div>
         </aside>
 
@@ -210,16 +177,13 @@ export default function App() {
             )}
           </div>
 
-          <div className="note-display">
-            {lastNote ? (
-              <>
-                <span className="note-display-name">{lastNote.name}{lastNote.oct}</span>
-                <span className="note-display-freq">{lastNote.freq?.toFixed(2)} Hz</span>
-              </>
-            ) : (
-              <span className="note-display-hint">press a key · keyboard: A – ; spans two octaves</span>
-            )}
-          </div>
+          <IntervalWheel
+            activeNotes={activeNotes}
+            tuningKey={tuningKey}
+            a4={a4}
+            equalDivisions={equalDivisions}
+            equalOctaveRatio={equalOctaveRatio}
+          />
 
           <Oscilloscope analyserRef={analyserRef} />
 

@@ -154,34 +154,6 @@ body {
   background: var(--bg);
 }
 
-.sidebar-tabs {
-  display: flex;
-  border-bottom: 1px solid var(--border);
-  flex-shrink: 0;
-}
-
-.sidebar-tab {
-  flex: 1;
-  background: transparent;
-  border: none;
-  color: var(--text-muted);
-  font-family: 'DM Mono', monospace;
-  font-size: 11px;
-  padding: 10px 0;
-  cursor: pointer;
-  text-transform: uppercase;
-  letter-spacing: 0.07em;
-  transition: color 0.12s;
-  border-bottom: 2px solid transparent;
-  margin-bottom: -1px;
-}
-
-.sidebar-tab:hover { color: var(--text-secondary); }
-
-.sidebar-tab.active {
-  color: var(--accent);
-  border-bottom-color: var(--accent);
-}
 
 .sidebar-content {
   flex: 1;
