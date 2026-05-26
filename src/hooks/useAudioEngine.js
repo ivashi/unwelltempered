@@ -70,5 +70,41 @@ export function useAudioEngine() {
     Object.keys(activeNodesRef.current).forEach(midi => stopNote(Number(midi)))
   }, [stopNote])
 
-  return { playNote, stopNote, stopAll, analyserRef }
+  // Fully-scheduled, self-contained note for the sequencer.
+  // Does not touch activeNodesRef — attack + release are baked in.
+  const scheduleNote = useCallback((midiNote, tuningKey, a4, waveform = 'triangle', options = {}, startTime, duration = 0.1) => {
+    const ac = getCtx()
+    const freq = getFrequency(midiNote, tuningKey, a4, options)
+
+    const osc = ac.createOscillator()
+    const gain = ac.createGain()
+
+    const atk = 0.008
+    const rel = Math.min(0.05, duration * 0.25)
+    const susEnd = startTime + duration - rel
+
+    osc.type = waveform
+    osc.frequency.setValueAtTime(freq, startTime)
+
+    gain.gain.setValueAtTime(0, startTime)
+    gain.gain.linearRampToValueAtTime(0.22, startTime + atk)
+    if (susEnd > startTime + atk) gain.gain.setValueAtTime(0.22, susEnd)
+    gain.gain.exponentialRampToValueAtTime(0.0001, startTime + duration)
+
+    osc.connect(gain)
+    gain.connect(masterGainRef.current || ac.destination)
+    osc.start(startTime)
+    osc.stop(startTime + duration + 0.01)
+  }, [])
+
+  // Returns current AudioContext time, creating the context if needed.
+  const getAudioTime = useCallback(() => getCtx().currentTime, [])
+
+  // Exposes the raw audio context + master gain for direct synthesis (e.g. drum machine).
+  const getAudioNodes = useCallback(() => {
+    const ac = getCtx()
+    return { ac, master: masterGainRef.current }
+  }, [])
+
+  return { playNote, stopNote, stopAll, analyserRef, scheduleNote, getAudioTime, getAudioNodes }
 }
