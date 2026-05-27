@@ -2,19 +2,19 @@
   flex-shrink: 0;
   display: flex;
   flex-direction: column;
-  gap: 8px;
+  gap: 6px;
   background: var(--bg-surface);
   border: 1px solid var(--border);
   border-radius: 8px;
   padding: 12px 14px;
 }
 
-/* ── Controls ───────────────────────────────── */
+/* ── Transport controls ─────────────────────── */
 .seq-controls {
   display: flex;
   align-items: center;
   gap: 14px;
-  margin-bottom: 2px;
+  margin-bottom: 4px;
 }
 
 .seq-play-btn {
@@ -94,39 +94,266 @@
 
 .seq-row {
   display: flex;
-  align-items: center;
-  gap: 8px;
+  align-items: stretch;
+  gap: 10px;
 }
 
-.seq-row-label {
-  width: 36px;
+/* ── Channel strip (left side of each drum row) ── */
+.seq-channel-strip {
+  width: 152px;
   flex-shrink: 0;
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  gap: 3px;
+  padding: 4px 10px 4px 0;
+  border-right: 1px solid var(--border);
+}
+
+.seq-strip-top {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 4px;
+}
+
+.seq-strip-name {
   font-family: 'DM Mono', monospace;
   font-size: 9px;
   text-transform: uppercase;
-  letter-spacing: 0.06em;
-  text-align: right;
+  letter-spacing: 0.08em;
   background: transparent;
   border: none;
-  cursor: default;
   padding: 0;
-  color: var(--text-muted);
+  cursor: pointer;
+  opacity: 0.85;
+  transition: opacity 0.1s;
+  line-height: 1;
 }
-button.seq-row-label { cursor: pointer; opacity: 0.75; transition: opacity 0.12s; }
-button.seq-row-label:hover { opacity: 1; }
+.seq-strip-name:hover { opacity: 1; }
 
-.seq-mel-label { color: var(--text-muted); cursor: default; }
+.seq-mute-btn {
+  width: 18px;
+  height: 18px;
+  border-radius: 3px;
+  border: 1px solid var(--border-strong);
+  background: transparent;
+  color: var(--text-muted);
+  font-family: 'DM Mono', monospace;
+  font-size: 8px;
+  font-weight: 500;
+  letter-spacing: 0;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+  transition: background 0.1s, border-color 0.1s, color 0.1s;
+}
+.seq-mute-btn:hover           { border-color: var(--accent-warm); color: var(--accent-warm); }
+.seq-mute-btn.muted           { background: var(--accent-warm); border-color: var(--accent-warm); color: #0e0e0d; }
+
+/* Fader rows (vol + pan) */
+.seq-fader-row {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+}
+
+.seq-fader-lbl {
+  font-family: 'DM Mono', monospace;
+  font-size: 7px;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  color: var(--text-muted);
+  width: 18px;
+  flex-shrink: 0;
+}
+
+.seq-fader {
+  -webkit-appearance: none;
+  appearance: none;
+  flex: 1;
+  height: 2px;
+  background: var(--bg-raised);
+  border-radius: 1px;
+  outline: none;
+  cursor: pointer;
+  accent-color: var(--c, var(--accent));
+  min-width: 0;
+}
+.seq-fader::-webkit-slider-thumb {
+  -webkit-appearance: none;
+  width: 9px;
+  height: 9px;
+  border-radius: 50%;
+  background: var(--c, var(--accent));
+  cursor: pointer;
+  border: 2px solid var(--bg);
+}
+
+.seq-fader.seq-fader-pan { accent-color: var(--text-secondary); }
+.seq-fader.seq-fader-pan::-webkit-slider-thumb { background: var(--text-secondary); }
+
+.seq-fader-val {
+  font-family: 'DM Mono', monospace;
+  font-size: 8px;
+  color: var(--text-muted);
+  text-align: right;
+  width: 26px;
+  flex-shrink: 0;
+  line-height: 1;
+}
+
+/* ── Melodic lane rows ──────────────────────── */
+.seq-lane-row { align-items: stretch; }
+
+/* Velocity lane */
+.seq-vel-lane {
+  display: flex;
+  gap: 3px;
+  flex: 1;
+  height: 32px;
+  align-items: flex-end;
+}
+
+.vel-bar-wrap {
+  flex: 1;
+  height: 100%;
+  background: var(--bg-raised);
+  border: 1px solid var(--border);
+  border-radius: 2px;
+  cursor: ns-resize;
+  position: relative;
+  overflow: hidden;
+  transition: border-color 0.07s;
+}
+.vel-bar-wrap.group-gap  { margin-left: 5px; }
+.vel-bar-wrap:hover      { border-color: var(--border-strong); }
+.vel-bar-wrap.is-current { border-color: rgba(255,255,255,0.2); }
+.vel-bar-wrap.is-off     { opacity: 0.35; }
+
+.vel-bar-fill {
+  position: absolute;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  background: var(--accent);
+  border-radius: 1px 1px 0 0;
+  transition: height 0.07s;
+}
+
+/* Note length lane */
+.seq-len-lane {
+  display: flex;
+  gap: 3px;
+  flex: 1;
+  height: 22px;
+}
+
+.len-btn {
+  flex: 1;
+  height: 100%;
+  border-radius: 3px;
+  border: 1px solid var(--border);
+  background: var(--bg-raised);
+  color: var(--text-muted);
+  font-family: 'DM Mono', monospace;
+  font-size: 8px;
+  letter-spacing: 0;
+  cursor: pointer;
+  padding: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: all 0.07s;
+}
+.len-btn.group-gap  { margin-left: 5px; }
+.len-btn:hover      { border-color: var(--border-strong); color: var(--text-secondary); }
+.len-btn.is-off     { opacity: 0.35; }
+.len-btn.is-current { border-color: rgba(255,255,255,0.2); }
+
+/* Length visual weight scales with duration */
+.len-btn.len-1 { /* default, no extra emphasis */ }
+.len-btn.len-2 { border-color: color-mix(in srgb, var(--accent) 30%, transparent); color: var(--text-secondary); }
+.len-btn.len-4 { border-color: color-mix(in srgb, var(--accent) 55%, transparent); color: var(--accent); }
+.len-btn.len-8 { border-color: var(--accent); color: var(--accent); background: var(--accent-dim); }
+
+/* Pan lane */
+.seq-pan-lane {
+  display: flex;
+  gap: 3px;
+  flex: 1;
+  height: 22px;
+  align-items: center;
+}
+
+.mel-pan-wrap {
+  flex: 1;
+  height: 100%;
+  display: flex;
+  align-items: center;
+  border: 1px solid transparent;
+  border-radius: 2px;
+  padding: 0 2px;
+  transition: border-color 0.07s;
+}
+.mel-pan-wrap.group-gap  { margin-left: 5px; }
+.mel-pan-wrap.is-current { border-color: rgba(255,255,255,0.12); }
+
+.mel-pan-slider {
+  -webkit-appearance: none;
+  appearance: none;
+  width: 100%;
+  height: 2px;
+  background: var(--bg-raised);
+  border-radius: 1px;
+  outline: none;
+  cursor: pointer;
+  accent-color: var(--text-secondary);
+}
+.mel-pan-slider::-webkit-slider-thumb {
+  -webkit-appearance: none;
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background: var(--text-secondary);
+  cursor: pointer;
+  border: 2px solid var(--bg);
+}
+
+/* ── Muted row ──────────────────────────────── */
+.seq-row.is-muted .seq-cells    { opacity: 0.22; pointer-events: none; }
+.seq-row.is-muted .seq-channel-strip { opacity: 0.55; }
+.seq-row.is-muted .seq-mute-btn { opacity: 1; }  /* mute btn always visible */
+
+/* ── Melodic channel strip ──────────────────── */
+.seq-mel-strip {
+  justify-content: center;
+}
+
+.seq-mel-label {
+  font-family: 'DM Mono', monospace;
+  font-size: 9px;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  color: var(--text-muted);
+  text-align: right;
+  padding-right: 0;
+}
 
 /* ── Step cells ─────────────────────────────── */
 .seq-cells {
   display: flex;
   gap: 3px;
   flex: 1;
+  align-items: stretch;
+  transition: opacity 0.15s;
 }
 
 .seq-cell {
   flex: 1;
-  height: 26px;
+  min-height: 50px;
   border-radius: 3px;
   border: 1px solid var(--border);
   background: var(--bg-raised);
@@ -138,7 +365,6 @@ button.seq-row-label:hover { opacity: 1; }
 .seq-cell.group-gap { margin-left: 5px; }
 .seq-cell:hover     { background: rgba(255,255,255,0.05); border-color: var(--border-strong); }
 
-/* Drum cell states */
 .seq-cell.is-on {
   background: color-mix(in srgb, var(--c) 28%, transparent);
   border-color: color-mix(in srgb, var(--c) 55%, transparent);
@@ -152,52 +378,6 @@ button.seq-row-label:hover { opacity: 1; }
   box-shadow: 0 0 7px color-mix(in srgb, var(--c) 35%, transparent);
 }
 
-/* ── Per-track volume fader ─────────────────── */
-.seq-vol {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  gap: 2px;
-  flex-shrink: 0;
-  width: 52px;
-}
-
-.seq-vol-slider {
-  -webkit-appearance: none;
-  appearance: none;
-  width: 46px;
-  height: 2px;
-  background: var(--bg-raised);
-  border-radius: 1px;
-  outline: none;
-  cursor: pointer;
-  accent-color: var(--c, var(--accent));
-}
-.seq-vol-slider::-webkit-slider-thumb {
-  -webkit-appearance: none;
-  width: 9px;
-  height: 9px;
-  border-radius: 50%;
-  background: var(--c, var(--accent));
-  cursor: pointer;
-  border: 2px solid var(--bg);
-}
-
-.seq-vol-val {
-  font-family: 'DM Mono', monospace;
-  font-size: 8px;
-  color: var(--text-muted);
-  text-align: center;
-  line-height: 1;
-  min-width: 24px;
-}
-
-/* Spacer on melodic row to match drum rows' vol column */
-.seq-vol-spacer {
-  width: 52px;
-  flex-shrink: 0;
-}
-
 /* ── Divider ────────────────────────────────── */
 .seq-divider {
   height: 1px;
@@ -205,9 +385,9 @@ button.seq-row-label:hover { opacity: 1; }
   margin: 2px 0;
 }
 
-/* ── Melodic cell ───────────────────────────── */
+/* ── Melodic cells ──────────────────────────── */
 .seq-mel-cell {
-  height: 44px;
+  min-height: 44px;
   display: flex;
   flex-direction: column;
   align-items: center;

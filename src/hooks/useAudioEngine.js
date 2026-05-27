@@ -72,27 +72,31 @@ export function useAudioEngine() {
 
   // Fully-scheduled, self-contained note for the sequencer.
   // Does not touch activeNodesRef — attack + release are baked in.
-  const scheduleNote = useCallback((midiNote, tuningKey, a4, waveform = 'triangle', options = {}, startTime, duration = 0.1) => {
+  const scheduleNote = useCallback((midiNote, tuningKey, a4, waveform = 'triangle', options = {}, startTime, duration = 0.1, velocity = 1, pan = 0) => {
     const ac = getCtx()
     const freq = getFrequency(midiNote, tuningKey, a4, options)
 
-    const osc = ac.createOscillator()
-    const gain = ac.createGain()
+    const osc    = ac.createOscillator()
+    const gain   = ac.createGain()
+    const panner = ac.createStereoPanner()
 
-    const atk = 0.008
-    const rel = Math.min(0.05, duration * 0.25)
+    const atk    = 0.008
+    const rel    = Math.min(0.05, duration * 0.25)
     const susEnd = startTime + duration - rel
+    const peak   = 0.22 * Math.max(0.05, velocity)
 
     osc.type = waveform
     osc.frequency.setValueAtTime(freq, startTime)
+    panner.pan.value = pan
 
     gain.gain.setValueAtTime(0, startTime)
-    gain.gain.linearRampToValueAtTime(0.22, startTime + atk)
-    if (susEnd > startTime + atk) gain.gain.setValueAtTime(0.22, susEnd)
+    gain.gain.linearRampToValueAtTime(peak, startTime + atk)
+    if (susEnd > startTime + atk) gain.gain.setValueAtTime(peak, susEnd)
     gain.gain.exponentialRampToValueAtTime(0.0001, startTime + duration)
 
     osc.connect(gain)
-    gain.connect(masterGainRef.current || ac.destination)
+    gain.connect(panner)
+    panner.connect(masterGainRef.current || ac.destination)
     osc.start(startTime)
     osc.stop(startTime + duration + 0.01)
   }, [])

@@ -1,9 +1,9 @@
 import { useState, useRef, useCallback, useEffect } from 'react'
 import { DRUM_TRACKS } from '../lib/drumSynth'
 
-const LOOKAHEAD  = 0.1   // seconds ahead to schedule
-const TICK_MS    = 25    // scheduler poll interval
-const NOTE_RATIO = 0.78  // melodic note length as fraction of step
+const LOOKAHEAD  = 0.1
+const TICK_MS    = 25
+const NOTE_RATIO = 0.78
 
 export function useSequencer({
   scheduleNote, getAudioNodes,
@@ -13,23 +13,27 @@ export function useSequencer({
   const [playing, setPlaying]         = useState(false)
   const [currentStep, setCurrentStep] = useState(-1)
   const [trackLevels, setTrackLevels] = useState(() => DRUM_TRACKS.map(() => 1.0))
+  const [trackPans,   setTrackPans]   = useState(() => DRUM_TRACKS.map(() => 0))
+  const [trackMutes,  setTrackMutes]  = useState(() => DRUM_TRACKS.map(() => false))
 
   const [drumPattern, setDrumPattern] = useState(
     () => DRUM_TRACKS.map(() => Array(16).fill(false))
   )
   const [melSteps, setMelSteps] = useState(
-    () => Array.from({ length: 16 }, () => ({ on: false, midi: 60 }))
+    () => Array.from({ length: 16 }, () => ({ on: false, midi: 60, velocity: 0.8, pan: 0, length: 1 }))
   )
 
   // Scheduler refs
-  const playingRef     = useRef(false)
-  const bpmRef         = useRef(120)
-  const drumRef        = useRef(drumPattern)
-  const melRef         = useRef(melSteps)
-  const nextTimeRef    = useRef(0)
-  const nextIndexRef   = useRef(0)
-  const tickerRef      = useRef(null)
-  const trackGainRefs  = useRef(null)  // per-track GainNodes, lazy-init
+  const playingRef      = useRef(false)
+  const bpmRef          = useRef(120)
+  const drumRef         = useRef(drumPattern)
+  const melRef          = useRef(melSteps)
+  const muteRef         = useRef(trackMutes)
+  const nextTimeRef     = useRef(0)
+  const nextIndexRef    = useRef(0)
+  const tickerRef       = useRef(null)
+  const trackGainRefs   = useRef(null)   // GainNode[]
+  const trackPannerRefs = useRef(null)   // StereoPannerNode[]
 
   // Settings refs — updated without restarting the scheduler
   const tuningKeyRef        = useRef(tuningKey)
@@ -41,6 +45,7 @@ export function useSequencer({
   useEffect(() => { bpmRef.current = bpm },               [bpm])
   useEffect(() => { drumRef.current = drumPattern },      [drumPattern])
   useEffect(() => { melRef.current = melSteps },          [melSteps])
+  useEffect(() => { muteRef.current = trackMutes },       [trackMutes])
   useEffect(() => { tuningKeyRef.current = tuningKey },   [tuningKey])
   useEffect(() => { a4Ref.current = a4 },                 [a4])
   useEffect(() => { waveformRef.current = waveform },     [waveform])
@@ -49,20 +54,28 @@ export function useSequencer({
 
   function stepDuration() { return 60 / bpmRef.current / 4 }
 
+  // Lazy-init per-track gain → panner → master chain
+  function initTrackNodes(ac, master) {
+    if (trackGainRefs.current) return
+    const panners = DRUM_TRACKS.map(() => {
+      const p = ac.createStereoPanner()
+      p.pan.value = 0
+      p.connect(master)
+      return p
+    })
+    trackPannerRefs.current = panners
+    trackGainRefs.current = DRUM_TRACKS.map((_, i) => {
+      const g = ac.createGain()
+      g.gain.value = 1.0
+      g.connect(panners[i])
+      return g
+    })
+  }
+
   function tick() {
     const { ac, master } = getAudioNodes()
-
-    // Lazy-init one GainNode per drum track so each has independent volume
-    if (!trackGainRefs.current) {
-      trackGainRefs.current = DRUM_TRACKS.map(() => {
-        const g = ac.createGain()
-        g.gain.value = 1.0
-        g.connect(master)
-        return g
-      })
-    }
+    initTrackNodes(ac, master)
     const trackGains = trackGainRefs.current
-
     const now = ac.currentTime
 
     while (nextTimeRef.current < now + LOOKAHEAD) {
@@ -70,12 +83,14 @@ export function useSequencer({
       const stepTime = nextTimeRef.current
       const dur      = stepDuration()
 
-      // Drum hits → routed through per-track gain
+      // Drum hits — skipped if track is muted
       drumRef.current.forEach((track, ti) => {
-        if (track[idx]) DRUM_TRACKS[ti].synth(ac, trackGains[ti], stepTime)
+        if (track[idx] && !muteRef.current[ti]) {
+          DRUM_TRACKS[ti].synth(ac, trackGains[ti], stepTime)
+        }
       })
 
-      // Melodic note
+      // Melodic note — length multiplier, velocity, and pan per step
       const mel = melRef.current[idx]
       if (mel?.on && mel.midi != null) {
         const opts = tuningKeyRef.current === 'equal'
@@ -83,11 +98,14 @@ export function useSequencer({
           : {}
         scheduleNote(
           mel.midi, tuningKeyRef.current, a4Ref.current,
-          waveformRef.current, opts, stepTime, dur * NOTE_RATIO
+          waveformRef.current, opts,
+          stepTime,
+          dur * (mel.length ?? 1) * NOTE_RATIO,
+          mel.velocity ?? 0.8,
+          mel.pan ?? 0
         )
       }
 
-      // Visual indicator — synced to audio via delayed setState
       const delay = Math.max(0, (stepTime - now) * 1000)
       setTimeout(() => {
         if (playingRef.current) setCurrentStep(idx)
@@ -115,7 +133,7 @@ export function useSequencer({
     setCurrentStep(-1)
   }, [])
 
-  // Drum actions
+  // Drum pattern actions
   const toggleDrumCell = useCallback((ti, si) => {
     setDrumPattern(prev => {
       const next = prev.map(r => [...r])
@@ -157,7 +175,34 @@ export function useSequencer({
     })
   }, [])
 
-  // Per-track volume — updates GainNode immediately + React state for UI
+  const setMelStepVelocity = useCallback((si, velocity) => {
+    setMelSteps(prev => {
+      const next = [...prev]
+      next[si] = { ...next[si], velocity }
+      return next
+    })
+  }, [])
+
+  const setMelStepPan = useCallback((si, pan) => {
+    setMelSteps(prev => {
+      const next = [...prev]
+      next[si] = { ...next[si], pan }
+      return next
+    })
+  }, [])
+
+  const MEL_LENGTHS = [1, 2, 4, 8]
+  const cycleMelStepLength = useCallback((si) => {
+    setMelSteps(prev => {
+      const next = [...prev]
+      const cur = next[si].length ?? 1
+      const idx = MEL_LENGTHS.indexOf(cur)
+      next[si] = { ...next[si], length: MEL_LENGTHS[(idx + 1) % MEL_LENGTHS.length] }
+      return next
+    })
+  }, [])
+
+  // Per-track volume
   const setTrackLevel = useCallback((ti, val) => {
     setTrackLevels(prev => {
       const next = [...prev]
@@ -169,6 +214,27 @@ export function useSequencer({
     }
   }, [])
 
+  // Per-track pan
+  const setTrackPan = useCallback((ti, val) => {
+    setTrackPans(prev => {
+      const next = [...prev]
+      next[ti] = val
+      return next
+    })
+    if (trackPannerRefs.current?.[ti]) {
+      trackPannerRefs.current[ti].pan.value = val
+    }
+  }, [])
+
+  // Per-track mute (skips scheduling; gain node keeps its level value)
+  const toggleMute = useCallback((ti) => {
+    setTrackMutes(prev => {
+      const next = [...prev]
+      next[ti] = !next[ti]
+      return next
+    })
+  }, [])
+
   useEffect(() => () => clearInterval(tickerRef.current), [])
 
   return {
@@ -177,6 +243,9 @@ export function useSequencer({
     currentStep,
     drumPattern, toggleDrumCell, clearDrumTrack,
     melSteps, toggleMelStep, setMelStepNote, clearMelStep,
+    setMelStepVelocity, setMelStepPan, cycleMelStepLength,
     trackLevels, setTrackLevel,
+    trackPans,   setTrackPan,
+    trackMutes,  toggleMute,
   }
 }

@@ -43,7 +43,10 @@ export default function App() {
     currentStep,
     drumPattern, toggleDrumCell, clearDrumTrack,
     melSteps, setMelStepNote, clearMelStep,
+    setMelStepVelocity, setMelStepPan, cycleMelStepLength,
     trackLevels, setTrackLevel,
+    trackPans,   setTrackPan,
+    trackMutes,  toggleMute,
   } = useSequencer({ scheduleNote, getAudioNodes, tuningKey, a4, waveform, equalDivisions, equalOctaveRatio })
 
   const handleNoteOn = useCallback((midi) => {
@@ -136,6 +139,8 @@ export default function App() {
                 bpm={bpm}
                 selectedStep={selectedStep}
                 trackLevels={trackLevels}
+                trackPans={trackPans}
+                trackMutes={trackMutes}
                 onPlay={seqStart}
                 onStop={seqStop}
                 onBpmChange={setBpm}
@@ -144,6 +149,11 @@ export default function App() {
                 onMelStepClick={i => setSelectedStep(prev => prev === i ? null : i)}
                 onMelStepRightClick={clearMelStep}
                 onTrackLevelChange={setTrackLevel}
+                onTrackPanChange={setTrackPan}
+                onToggleMute={toggleMute}
+                onSetMelVelocity={setMelStepVelocity}
+                onSetMelPan={setMelStepPan}
+                onCycleMelLength={cycleMelStepLength}
               />
               <div className="keyboard-container">
                 <Keyboard baseOctave={baseOctave} activeNotes={activeNotes} onNoteOn={handleNoteOn} onNoteOff={handleNoteOff} />
