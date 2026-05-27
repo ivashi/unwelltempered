@@ -6,13 +6,14 @@ import Oscilloscope from './components/Oscilloscope'
 import Sequencer from './components/Sequencer'
 import ScalesTab from './components/ScalesTab'
 import BouncerTab from './components/BouncerTab'
+import WaveTab from './components/WaveTab'
 import { useAudioEngine } from './hooks/useAudioEngine'
 import { useKeyboardInput } from './hooks/useKeyboardInput'
 import { useSequencer } from './hooks/useSequencer'
 import { TUNINGS, getFrequency, NOTE_NAMES } from './lib/tunings'
 import './App.css'
 
-const WAVEFORMS = ['triangle', 'sine', 'square', 'sawtooth']
+const WAVEFORMS = ['triangle', 'sine', 'square', 'sawtooth', 'draw']
 const A4_OPTIONS = [
   { label: '432 Hz', value: 432 },
   { label: '440 Hz', value: 440 },
@@ -21,9 +22,10 @@ const A4_OPTIONS = [
 ]
 
 const TABS = [
-  { id: 'freeplay',  label: 'FREE PLAY',  sub: 'just play'      },
-  { id: 'scales',    label: 'SCALES',     sub: 'learn & explore' },
+  { id: 'freeplay',  label: 'FREE PLAY',  sub: 'just play'          },
+  { id: 'scales',    label: 'SCALES',     sub: 'learn & explore'    },
   { id: 'harmony',   label: 'HARMONY',    sub: 'visualizing harmony' },
+  { id: 'wave',      label: 'WAVE',       sub: 'draw your timbre'   },
   { id: 'tuning',    label: 'TUNING LAB', sub: 'temperament'        },
   { id: 'sequencer', label: 'SEQUENCER',  sub: 'step + drum'        },
   { id: 'bouncer',   label: 'BOUNCE',     sub: 'circle of fifths'   },
@@ -40,7 +42,7 @@ export default function App() {
   const [equalOctaveRatio, setEqualOctaveRatio] = useState(2)
   const [selectedStep,     setSelectedStep]     = useState(null)
 
-  const { playNote, stopNote, stopAll, analyserRef, scheduleNote, getAudioNodes } = useAudioEngine()
+  const { playNote, stopNote, stopAll, analyserRef, scheduleNote, getAudioNodes, setCustomWave } = useAudioEngine()
 
   const {
     bpm, setBpm,
@@ -90,12 +92,12 @@ export default function App() {
           <span className="app-wordmark-sep">·</span>
           <span className="app-wordmark-sub">a music laboratory</span>
         </div>
-        {activeTab !== 'freeplay' && activeTab !== 'bouncer' && (
+        {activeTab !== 'freeplay' && activeTab !== 'bouncer' && activeTab !== 'wave' && (
           <div className="app-controls">
             <div className="control-chip">
               <label className="control-label">Timbre</label>
               <select value={waveform} onChange={e => setWaveform(e.target.value)} className="control-select">
-                {WAVEFORMS.map(w => <option key={w} value={w}>{w.charAt(0).toUpperCase() + w.slice(1)}</option>)}
+                {WAVEFORMS.map(w => <option key={w} value={w}>{w === 'draw' ? 'Custom' : w.charAt(0).toUpperCase() + w.slice(1)}</option>)}
               </select>
             </div>
             <div className="control-chip">
@@ -200,6 +202,20 @@ export default function App() {
               <div className="keyboard-container">
                 <Keyboard baseOctave={baseOctave} activeNotes={activeNotes} onNoteOn={handleNoteOn} onNoteOff={handleNoteOff} />
               </div>
+            </div>
+          )}
+
+          {/* WAVE DESIGNER */}
+          {activeTab === 'wave' && (
+            <div className="tab-pane tab-pane--canvas">
+              <WaveTab
+                onWaveChange={(real, imag) => { setCustomWave(real, imag); setWaveform('draw') }}
+                onNoteOn={handleNoteOn}
+                onNoteOff={handleNoteOff}
+                activeNotes={activeNotes}
+                baseOctave={baseOctave}
+                setBaseOctave={setBaseOctave}
+              />
             </div>
           )}
 
@@ -328,7 +344,7 @@ export default function App() {
                   <div className="control-chip">
                     <label className="control-label">Timbre</label>
                     <select value={waveform} onChange={e => setWaveform(e.target.value)} className="control-select">
-                      {WAVEFORMS.map(w => <option key={w} value={w}>{w.charAt(0).toUpperCase() + w.slice(1)}</option>)}
+                      {WAVEFORMS.map(w => <option key={w} value={w}>{w === 'draw' ? 'Custom' : w.charAt(0).toUpperCase() + w.slice(1)}</option>)}
                     </select>
                   </div>
                   <div className="control-chip">

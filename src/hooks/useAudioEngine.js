@@ -6,6 +6,20 @@ export function useAudioEngine() {
   const activeNodesRef = useRef({})
   const analyserRef = useRef(null)
   const masterGainRef = useRef(null)
+  const customWaveRef = useRef(null)  // { real: Float32Array, imag: Float32Array }
+
+  function applyWaveform(osc, waveform) {
+    if (waveform === 'draw' && customWaveRef.current && ctxRef.current) {
+      const pw = ctxRef.current.createPeriodicWave(
+        customWaveRef.current.real,
+        customWaveRef.current.imag,
+        { disableNormalization: false }
+      )
+      osc.setPeriodicWave(pw)
+    } else if (waveform !== 'draw') {
+      osc.type = waveform
+    }
+  }
 
   function getCtx() {
     if (!ctxRef.current) {
@@ -39,8 +53,7 @@ export function useAudioEngine() {
     const osc = ac.createOscillator()
     const gainNode = ac.createGain()
 
-    // Slight attack to avoid clicks
-    osc.type = waveform
+    applyWaveform(osc, waveform)
     osc.frequency.setValueAtTime(freq, ac.currentTime)
 
     gainNode.gain.setValueAtTime(0, ac.currentTime)
@@ -85,7 +98,7 @@ export function useAudioEngine() {
     const susEnd = startTime + duration - rel
     const peak   = 0.22 * Math.max(0.05, velocity)
 
-    osc.type = waveform
+    applyWaveform(osc, waveform)
     osc.frequency.setValueAtTime(freq, startTime)
     panner.pan.value = pan
 
@@ -110,5 +123,9 @@ export function useAudioEngine() {
     return { ac, master: masterGainRef.current }
   }, [])
 
-  return { playNote, stopNote, stopAll, analyserRef, scheduleNote, getAudioTime, getAudioNodes }
+  const setCustomWave = useCallback((real, imag) => {
+    customWaveRef.current = { real, imag }
+  }, [])
+
+  return { playNote, stopNote, stopAll, analyserRef, scheduleNote, getAudioTime, getAudioNodes, setCustomWave }
 }
