@@ -45,8 +45,15 @@ body {
 
 .app-wordmark {
   display: flex;
-  align-items: baseline;
+  align-items: center;
   gap: 12px;
+  flex-shrink: 0;
+}
+
+.app-logo-keys {
+  width: 36px;
+  height: auto;
+  color: var(--text-primary);
   flex-shrink: 0;
 }
 

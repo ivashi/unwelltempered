@@ -88,6 +88,14 @@ export default function App() {
       {/* ── Header ── */}
       <header className="app-header">
         <div className="app-wordmark">
+          <svg className="app-logo-keys" viewBox="0 0 43 28" fill="none" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
+            {[0,7,14,21,28,35].map(x => (
+              <rect key={x} x={x+0.5} y="0.5" width="6" height="27" rx="1" fill="none" stroke="currentColor" strokeOpacity="0.55" strokeWidth="1"/>
+            ))}
+            {[4.5, 11.5, 25.5, 32.5].map(x => (
+              <rect key={x} x={x} y="0.5" width="4" height="17" rx="1" fill="currentColor" fillOpacity="0.6"/>
+            ))}
+          </svg>
           <span className="app-wordmark-main">UNWELLTEMPERED</span>
           <span className="app-wordmark-sep">·</span>
           <span className="app-wordmark-sub">a music laboratory</span>
