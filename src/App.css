@@ -172,6 +172,9 @@ body {
   padding: 12px 0 0;
 }
 
+/* NavLink renders an <a> — reset anchor defaults */
+a.nav-tab { text-decoration: none; }
+
 .nav-tab {
   display: flex;
   flex-direction: column;

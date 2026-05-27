@@ -54,6 +54,13 @@ export function useKeyboardInput({ baseOctave, onNoteOn, onNoteOff }) {
     window.addEventListener('keydown', handleDown)
     window.addEventListener('keyup', handleUp)
     return () => {
+      // Release any currently-pressed notes before the octave/handlers update,
+      // otherwise the old midi numbers are orphaned and the note gets stuck.
+      for (const key of pressedRef.current) {
+        const mapping = KB_MAP[key]
+        if (mapping) onNoteOff(semiToMidi(mapping.semi, baseOctave))
+      }
+      pressedRef.current.clear()
       window.removeEventListener('keydown', handleDown)
       window.removeEventListener('keyup', handleUp)
     }

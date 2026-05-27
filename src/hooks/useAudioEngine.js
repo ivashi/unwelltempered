@@ -1,4 +1,4 @@
-import { useRef, useCallback } from 'react'
+import { useRef, useCallback, useEffect } from 'react'
 import { getFrequency } from '../lib/tunings'
 
 export function useAudioEngine() {
@@ -126,6 +126,20 @@ export function useAudioEngine() {
   const setCustomWave = useCallback((real, imag) => {
     customWaveRef.current = { real, imag }
   }, [])
+
+  // Close the AudioContext and stop all audio when the owning page unmounts
+  useEffect(() => {
+    return () => {
+      Object.values(activeNodesRef.current).forEach(({ osc }) => {
+        try { osc.stop() } catch (_) {}
+      })
+      activeNodesRef.current = {}
+      if (ctxRef.current) {
+        ctxRef.current.close().catch(() => {})
+        ctxRef.current = null
+      }
+    }
+  }, []) // intentionally empty — runs exactly once on unmount
 
   return { playNote, stopNote, stopAll, analyserRef, scheduleNote, getAudioTime, getAudioNodes, setCustomWave }
 }
