@@ -35,16 +35,16 @@ export default function Keyboard({ baseOctave, activeNotes, scaleNotes = new Set
     return semiToMidi(semi, baseOctave)
   }
 
-  function handleMouseDown(e, semi) {
+  function handlePointerDown(e, semi) {
     e.preventDefault()
     onNoteOn(getMidi(semi), semi)
   }
 
-  function handleMouseUp(semi) {
+  function handlePointerUp(semi) {
     onNoteOff(getMidi(semi))
   }
 
-  function handleMouseLeave(semi) {
+  function handlePointerLeave(semi) {
     onNoteOff(getMidi(semi))
   }
 
@@ -62,9 +62,9 @@ export default function Keyboard({ baseOctave, activeNotes, scaleNotes = new Set
             key={semi}
             className={`key white${inScale ? ' in-scale' : ''}${isActive ? ' active' : ''}`}
             style={{ left: i * keyWidth, width: keyWidth - 2 }}
-            onMouseDown={e => handleMouseDown(e, semi)}
-            onMouseUp={() => handleMouseUp(semi)}
-            onMouseLeave={() => handleMouseLeave(semi)}
+            onPointerDown={e => handlePointerDown(e, semi)}
+            onPointerUp={() => handlePointerUp(semi)}
+            onPointerLeave={() => handlePointerLeave(semi)}
           >
             <div className="key-bottom">
               <span className="key-note">{NOTE_NAMES[midi % 12]}</span>
@@ -89,9 +89,9 @@ export default function Keyboard({ baseOctave, activeNotes, scaleNotes = new Set
               left: pos * keyWidth + keyWidth - Math.round(bw / 2) - 1,
               width: bw,
             }}
-            onMouseDown={e => handleMouseDown(e, semi)}
-            onMouseUp={() => handleMouseUp(semi)}
-            onMouseLeave={() => handleMouseLeave(semi)}
+            onPointerDown={e => handlePointerDown(e, semi)}
+            onPointerUp={() => handlePointerUp(semi)}
+            onPointerLeave={() => handlePointerLeave(semi)}
           >
             <div className="key-bottom">
               <span className="key-note">{NOTE_NAMES[midi % 12]}</span>

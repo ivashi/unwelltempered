@@ -64,6 +64,7 @@ export default function SequencerPage() {
         </div>
       </div>
 
+      <div className="seq-scroll-wrap">
       <Sequencer
         drumPattern={drumPattern}
         melSteps={melSteps}
@@ -88,6 +89,7 @@ export default function SequencerPage() {
         onSetMelPan={setMelStepPan}
         onCycleMelLength={cycleMelStepLength}
       />
+      </div>
 
       <div className="keyboard-container">
         <Keyboard

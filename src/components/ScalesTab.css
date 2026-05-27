@@ -233,3 +233,36 @@
   color: var(--text-secondary);
   line-height: 1.65;
 }
+
+@media (max-width: 640px) {
+  .scales-main-row {
+    grid-template-columns: 1fr;
+    flex: none;           /* don't stretch to fill parent — avoids huge gap between rows */
+    align-content: start;
+  }
+
+  .scale-info-top {
+    flex-direction: column;
+    gap: 10px;
+  }
+  .play-scale-btn { align-self: flex-start; }
+
+  /* Scale list becomes a horizontal scrolling chip strip */
+  .scales-picker-section {
+    overflow: visible;
+  }
+  .scale-list {
+    flex-direction: row;
+    overflow-x: auto;
+    overflow-y: hidden;
+    scrollbar-width: none;
+    padding-bottom: 2px;
+    gap: 6px;
+  }
+  .scale-list::-webkit-scrollbar { display: none; }
+  .scale-list-btn {
+    flex-shrink: 0;
+    padding: 6px 12px;
+  }
+  .scale-list-cat { display: none; }
+}
