@@ -31,6 +31,7 @@ const NOTE_OFF_MS   = 240
 const HIT_FRAMES    = 20
 const MAX_SPEED     = 18
 const MIDI_BASE     = 60
+const SUBSTEPS      = 3   // physics substeps per frame — prevents tunneling at high speed
 
 // Regular n-gon vertices
 function vertices(cx, cy, R, rot, n) {
@@ -221,14 +222,30 @@ export default function BouncerTab({ onNoteOn, onNoteOff }) {
       const verts = vertices(s.cx, s.cy, s.R, s.rotation, activeList.length)
 
       for (const ball of s.balls) {
-        ball.x += ball.vx
-        ball.y += ball.vy
-        collide(ball, verts, s.cx, s.cy, effectiveAngVel, s.glows, activeList, (wallIdx, origIdx) => {
-          const note = activeList[wallIdx]
-          cbRef.current.onNoteOn(MIDI_BASE + note.semi)
-          setTimeout(() => cbRef.current.onNoteOff(MIDI_BASE + note.semi), NOTE_OFF_MS)
-          s.hitLabel = { name: note.name, frames: HIT_FRAMES }
-        })
+        // Sub-stepped integration: advance vx/SUBSTEPS each check so a fast ball
+        // can never travel more than one ball-radius between collision checks.
+        for (let step = 0; step < SUBSTEPS; step++) {
+          ball.x += ball.vx / SUBSTEPS
+          ball.y += ball.vy / SUBSTEPS
+          collide(ball, verts, s.cx, s.cy, effectiveAngVel, s.glows, activeList, (wallIdx, origIdx) => {
+            const note = activeList[wallIdx]
+            cbRef.current.onNoteOn(MIDI_BASE + note.semi)
+            setTimeout(() => cbRef.current.onNoteOff(MIDI_BASE + note.semi), NOTE_OFF_MS)
+            s.hitLabel = { name: note.name, frames: HIT_FRAMES }
+          })
+        }
+
+        // Containment fallback: if the ball somehow escaped past the circumscribed
+        // circle, snap it back inside and reflect its velocity inward.
+        const ex = ball.x - s.cx, ey = ball.y - s.cy
+        const ed = Math.hypot(ex, ey)
+        if (ed > s.R) {
+          const nx = ex / ed, ny = ey / ed
+          ball.x = s.cx + nx * (s.R - BALL_RADIUS)
+          ball.y = s.cy + ny * (s.R - BALL_RADIUS)
+          const vn = ball.vx * nx + ball.vy * ny
+          if (vn > 0) { ball.vx -= 2 * vn * nx; ball.vy -= 2 * vn * ny }
+        }
       }
 
       setBallCount(s.balls.length)
