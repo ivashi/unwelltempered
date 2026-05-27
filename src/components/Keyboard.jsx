@@ -15,7 +15,7 @@ Object.entries(KB_MAP).forEach(([k, { semi }]) => {
   SEMI_TO_KEY[semi] = k === ';' ? ';' : k.toUpperCase()
 })
 
-export default function Keyboard({ baseOctave, activeNotes, onNoteOn, onNoteOff }) {
+export default function Keyboard({ baseOctave, activeNotes, scaleNotes = new Set(), onNoteOn, onNoteOff }) {
   const wrapRef = useRef(null)
   const [keyWidth, setKeyWidth] = useState(52)
 
@@ -56,10 +56,11 @@ export default function Keyboard({ baseOctave, activeNotes, onNoteOn, onNoteOff 
       {WHITE_SEMITONES.map((semi, i) => {
         const midi = getMidi(semi)
         const isActive = activeNotes.has(midi)
+        const inScale = scaleNotes.size > 0 && scaleNotes.has(midi % 12)
         return (
           <div
             key={semi}
-            className={`key white${isActive ? ' active' : ''}`}
+            className={`key white${inScale ? ' in-scale' : ''}${isActive ? ' active' : ''}`}
             style={{ left: i * keyWidth, width: keyWidth - 2 }}
             onMouseDown={e => handleMouseDown(e, semi)}
             onMouseUp={() => handleMouseUp(semi)}
@@ -79,10 +80,11 @@ export default function Keyboard({ baseOctave, activeNotes, onNoteOn, onNoteOff 
         if (pos === undefined) return null
         const midi = getMidi(semi)
         const isActive = activeNotes.has(midi)
+        const inScale = scaleNotes.size > 0 && scaleNotes.has(midi % 12)
         return (
           <div
             key={semi}
-            className={`key black${isActive ? ' active' : ''}`}
+            className={`key black${inScale ? ' in-scale' : ''}${isActive ? ' active' : ''}`}
             style={{
               left: pos * keyWidth + keyWidth - Math.round(bw / 2) - 1,
               width: bw,

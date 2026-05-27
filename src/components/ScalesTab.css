@@ -1,0 +1,235 @@
+.scales-tab {
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+  flex: 1;
+}
+
+.scales-top-row {
+  flex-shrink: 0;
+}
+
+.scales-main-row {
+  display: grid;
+  grid-template-columns: 200px 1fr;
+  gap: 16px;
+  flex: 1;
+  min-height: 0;
+}
+
+/* ── Section labels ── */
+.scales-section {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.scales-section-label {
+  font-family: 'DM Mono', monospace;
+  font-size: 9px;
+  text-transform: uppercase;
+  letter-spacing: 0.12em;
+  color: var(--text-muted);
+}
+
+/* ── Root note picker ── */
+.root-picker {
+  display: flex;
+  gap: 4px;
+  flex-wrap: wrap;
+}
+
+.root-btn {
+  background: var(--bg-surface);
+  border: 1px solid var(--border);
+  color: var(--text-secondary);
+  font-family: 'DM Mono', monospace;
+  font-size: 11px;
+  padding: 5px 11px;
+  border-radius: 4px;
+  cursor: pointer;
+  transition: all 0.1s;
+  min-width: 38px;
+  text-align: center;
+}
+
+.root-btn.sharp {
+  color: var(--text-muted);
+  background: var(--bg);
+}
+
+.root-btn:hover {
+  background: var(--bg-raised);
+  color: var(--text-primary);
+  border-color: var(--border-strong);
+}
+
+.root-btn.active {
+  background: var(--accent-warm);
+  border-color: var(--accent-warm);
+  color: #1a1200;
+  font-weight: 600;
+}
+
+/* ── Scale list (left column) ── */
+.scales-picker-section {
+  overflow: hidden;
+}
+
+.scale-list {
+  display: flex;
+  flex-direction: column;
+  gap: 3px;
+  overflow-y: auto;
+  scrollbar-width: thin;
+  scrollbar-color: var(--border-strong) transparent;
+}
+
+.scale-list-btn {
+  background: var(--bg-surface);
+  border: 1px solid var(--border);
+  color: var(--text-secondary);
+  font-family: 'DM Mono', monospace;
+  padding: 8px 10px;
+  border-radius: 4px;
+  cursor: pointer;
+  text-align: left;
+  display: flex;
+  justify-content: space-between;
+  align-items: baseline;
+  gap: 6px;
+  transition: all 0.1s;
+  flex-shrink: 0;
+}
+
+.scale-list-btn:hover {
+  background: var(--bg-raised);
+  border-color: var(--border-strong);
+  color: var(--text-primary);
+}
+
+.scale-list-btn.active {
+  background: var(--accent-dim);
+  border-color: var(--accent);
+  color: var(--text-primary);
+}
+
+.scale-list-name {
+  font-size: 11px;
+}
+
+.scale-list-cat {
+  font-size: 8px;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  color: var(--text-muted);
+  flex-shrink: 0;
+}
+
+.scale-list-btn.active .scale-list-cat {
+  color: var(--accent);
+}
+
+/* ── Right column ── */
+.scales-right {
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+}
+
+/* ── Info card ── */
+.scale-info-card {
+  background: var(--bg-surface);
+  border: 1px solid var(--border);
+  border-radius: 7px;
+  padding: 14px 18px;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  flex-shrink: 0;
+}
+
+.scale-info-top {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 12px;
+}
+
+.scale-info-title-block {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.scale-info-title {
+  font-family: 'Barlow Condensed', sans-serif;
+  font-size: 24px;
+  font-weight: 700;
+  letter-spacing: 0.04em;
+  color: var(--text-primary);
+  text-transform: uppercase;
+  line-height: 1;
+}
+
+.scale-info-formula {
+  font-family: 'DM Mono', monospace;
+  font-size: 10px;
+  color: var(--accent);
+  letter-spacing: 0.1em;
+}
+
+.play-scale-btn {
+  background: var(--accent);
+  border: none;
+  color: var(--bg);
+  font-family: 'DM Mono', monospace;
+  font-size: 10px;
+  font-weight: 600;
+  letter-spacing: 0.12em;
+  padding: 8px 16px;
+  border-radius: 4px;
+  cursor: pointer;
+  white-space: nowrap;
+  transition: background 0.1s;
+  flex-shrink: 0;
+}
+
+.play-scale-btn:hover { background: #aac5f5; }
+
+.play-scale-btn.stop {
+  background: var(--accent-warm);
+}
+
+.play-scale-btn.stop:hover { background: #edb07a; }
+
+/* ── Note names row ── */
+.scale-info-notes {
+  display: flex;
+  gap: 5px;
+  flex-wrap: wrap;
+  align-items: center;
+}
+
+.scale-degree {
+  font-family: 'DM Mono', monospace;
+  font-size: 11px;
+  color: var(--text-primary);
+  background: var(--bg-raised);
+  padding: 3px 8px;
+  border-radius: 3px;
+  border: 1px solid var(--border);
+}
+
+.scale-degree.octave {
+  color: var(--text-muted);
+  background: transparent;
+  border-color: transparent;
+}
+
+.scale-info-desc {
+  font-family: 'DM Mono', monospace;
+  font-size: 11px;
+  color: var(--text-secondary);
+  line-height: 1.65;
+}

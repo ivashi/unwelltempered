@@ -234,6 +234,12 @@ body {
   scrollbar-color: var(--border-strong) transparent;
 }
 
+/* Full-bleed canvas tabs (no padding, no scroll) */
+.tab-pane--canvas {
+  padding: 0;
+  overflow: hidden;
+}
+
 /* ── Keyboard container ──────────────────────────── */
 .keyboard-container {
   height: 168px;
@@ -303,6 +309,15 @@ body {
   color: var(--accent);
   margin-left: auto;
   letter-spacing: 0.04em;
+}
+
+.tuning-a4-chip {
+  display: flex;
+  align-items: center;
+  gap: 7px;
+  margin-left: 12px;
+  padding-left: 12px;
+  border-left: 1px solid var(--border);
 }
 
 .tuning-info-desc {
@@ -408,7 +423,105 @@ input[type='range'].equal-slider::-moz-range-thumb {
   border-color: rgba(255,255,255,0.22);
 }
 
+/* ── Frequency readout ───────────────────────────── */
+.freq-readout {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px 14px;
+  align-items: center;
+  min-height: 28px;
+  flex-shrink: 0;
+}
+
+.freq-readout-hint {
+  font-family: 'DM Mono', monospace;
+  font-size: 10px;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  color: var(--text-muted);
+}
+
+.freq-row {
+  display: flex;
+  align-items: baseline;
+  gap: 8px;
+  background: var(--bg-surface);
+  border: 1px solid var(--border);
+  border-radius: 5px;
+  padding: 5px 10px;
+}
+
+.freq-note {
+  font-family: 'Barlow Condensed', sans-serif;
+  font-size: 16px;
+  font-weight: 700;
+  color: var(--text-primary);
+  letter-spacing: 0.02em;
+  line-height: 1;
+}
+
+.freq-octave {
+  font-family: 'DM Mono', monospace;
+  font-size: 9px;
+  color: var(--text-muted);
+  margin-left: 1px;
+}
+
+.freq-hz {
+  font-family: 'DM Mono', monospace;
+  font-size: 12px;
+  color: var(--accent);
+  letter-spacing: 0.02em;
+}
+
+.freq-cents {
+  font-family: 'DM Mono', monospace;
+  font-size: 10px;
+  color: var(--text-muted);
+  letter-spacing: 0.02em;
+}
+
+.freq-cents.freq-sharp { color: var(--accent-warm); }
+.freq-cents.freq-flat  { color: #a0c4f0; }
+
+/* ── Harmony tab ─────────────────────────────────── */
+.harmony-desc {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  flex-shrink: 0;
+}
+
+.harmony-desc-title {
+  font-family: 'Bebas Neue', sans-serif;
+  font-size: 28px;
+  letter-spacing: 0.05em;
+  color: var(--text-primary);
+  line-height: 1;
+}
+
+.harmony-desc-body {
+  font-family: 'DM Mono', monospace;
+  font-size: 11px;
+  color: var(--text-secondary);
+  line-height: 1.7;
+  max-width: 680px;
+}
+
 /* ── Free Play tab ───────────────────────────────── */
+.freeplay-keyboard-area {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  flex-shrink: 0;
+}
+
+.freeplay-piano-controls {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+}
+
 .freeplay-headline {
   display: flex;
   flex-direction: column;

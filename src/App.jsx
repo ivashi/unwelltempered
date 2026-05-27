@@ -4,10 +4,12 @@ import TuningPanel from './components/TuningPanel'
 import IntervalWheel from './components/IntervalWheel'
 import Oscilloscope from './components/Oscilloscope'
 import Sequencer from './components/Sequencer'
+import ScalesTab from './components/ScalesTab'
+import BouncerTab from './components/BouncerTab'
 import { useAudioEngine } from './hooks/useAudioEngine'
 import { useKeyboardInput } from './hooks/useKeyboardInput'
 import { useSequencer } from './hooks/useSequencer'
-import { TUNINGS } from './lib/tunings'
+import { TUNINGS, getFrequency, NOTE_NAMES } from './lib/tunings'
 import './App.css'
 
 const WAVEFORMS = ['triangle', 'sine', 'square', 'sawtooth']
@@ -19,13 +21,16 @@ const A4_OPTIONS = [
 ]
 
 const TABS = [
-  { id: 'sequencer', label: 'SEQUENCER', sub: 'step + drum' },
-  { id: 'tuning',    label: 'TUNING LAB', sub: 'temperament' },
-  { id: 'freeplay',  label: 'FREE PLAY',  sub: 'just play'   },
+  { id: 'freeplay',  label: 'FREE PLAY',  sub: 'just play'      },
+  { id: 'scales',    label: 'SCALES',     sub: 'learn & explore' },
+  { id: 'harmony',   label: 'HARMONY',    sub: 'visualizing harmony' },
+  { id: 'tuning',    label: 'TUNING LAB', sub: 'temperament'        },
+  { id: 'sequencer', label: 'SEQUENCER',  sub: 'step + drum'        },
+  { id: 'bouncer',   label: 'BOUNCE',     sub: 'circle of fifths'   },
 ]
 
 export default function App() {
-  const [activeTab,        setActiveTab]        = useState('sequencer')
+  const [activeTab,        setActiveTab]        = useState('freeplay')
   const [tuningKey,        setTuningKey]        = useState('equal')
   const [baseOctave,       setBaseOctave]       = useState(4)
   const [a4,               setA4]               = useState(440)
@@ -85,28 +90,24 @@ export default function App() {
           <span className="app-wordmark-sep">·</span>
           <span className="app-wordmark-sub">a music laboratory</span>
         </div>
-        <div className="app-controls">
-          <div className="control-chip">
-            <label className="control-label">A4</label>
-            <select value={a4} onChange={e => setA4(Number(e.target.value))} className="control-select">
-              {A4_OPTIONS.map(o => <option key={o.value} value={o.value}>{o.label}</option>)}
-            </select>
-          </div>
-          <div className="control-chip">
-            <label className="control-label">Timbre</label>
-            <select value={waveform} onChange={e => setWaveform(e.target.value)} className="control-select">
-              {WAVEFORMS.map(w => <option key={w} value={w}>{w.charAt(0).toUpperCase() + w.slice(1)}</option>)}
-            </select>
-          </div>
-          <div className="control-chip">
-            <label className="control-label">Octave</label>
-            <div className="octave-stepper">
-              <button className="oct-btn" onClick={() => setBaseOctave(o => Math.max(1, o - 1))}>−</button>
-              <span className="oct-val">{baseOctave}</span>
-              <button className="oct-btn" onClick={() => setBaseOctave(o => Math.min(7, o + 1))}>+</button>
+        {activeTab !== 'freeplay' && activeTab !== 'bouncer' && (
+          <div className="app-controls">
+            <div className="control-chip">
+              <label className="control-label">Timbre</label>
+              <select value={waveform} onChange={e => setWaveform(e.target.value)} className="control-select">
+                {WAVEFORMS.map(w => <option key={w} value={w}>{w.charAt(0).toUpperCase() + w.slice(1)}</option>)}
+              </select>
+            </div>
+            <div className="control-chip">
+              <label className="control-label">Octave</label>
+              <div className="octave-stepper">
+                <button className="oct-btn" onClick={() => setBaseOctave(o => Math.max(1, o - 1))}>−</button>
+                <span className="oct-val">{baseOctave}</span>
+                <button className="oct-btn" onClick={() => setBaseOctave(o => Math.min(7, o + 1))}>+</button>
+              </div>
             </div>
           </div>
-        </div>
+        )}
       </header>
 
       <div className="app-body">
@@ -127,6 +128,47 @@ export default function App() {
 
         {/* ── Tab content ── */}
         <main className="main-area">
+
+          {/* HARMONY */}
+          {activeTab === 'harmony' && (
+            <div className="tab-pane">
+              <div className="harmony-desc">
+                <span className="harmony-desc-title">Visualizing Harmony</span>
+                <span className="harmony-desc-body">
+                  Play any notes on the keyboard below. Each note appears as a point on the circle — lines connect every pair of simultaneously held notes. Line color shows consonance: warm amber for pure, resonant intervals (octaves, fifths, thirds); cool blue for tense, dissonant ones (tritones, minor seconds). The further apart two notes sit on the circle, the more complex their relationship. Try holding a chord and adding notes one at a time to watch the web of intervals build.
+                </span>
+              </div>
+              <IntervalWheel
+                activeNotes={activeNotes}
+                tuningKey={tuningKey}
+                a4={a4}
+                equalDivisions={equalDivisions}
+                equalOctaveRatio={equalOctaveRatio}
+              />
+              <div className="keyboard-container">
+                <Keyboard baseOctave={baseOctave} activeNotes={activeNotes} onNoteOn={handleNoteOn} onNoteOff={handleNoteOff} />
+              </div>
+            </div>
+          )}
+
+          {/* BOUNCER */}
+          {activeTab === 'bouncer' && (
+            <div className="tab-pane tab-pane--canvas">
+              <BouncerTab onNoteOn={handleNoteOn} onNoteOff={handleNoteOff} />
+            </div>
+          )}
+
+          {/* SCALES */}
+          {activeTab === 'scales' && (
+            <div className="tab-pane">
+              <ScalesTab
+                baseOctave={baseOctave}
+                activeNotes={activeNotes}
+                onNoteOn={handleNoteOn}
+                onNoteOff={handleNoteOff}
+              />
+            </div>
+          )}
 
           {/* SEQUENCER */}
           {activeTab === 'sequencer' && (
@@ -186,6 +228,12 @@ export default function App() {
                       <div className="tuning-info-era">
                         {tuningKey === 'equal' && (equalDivisions !== 12 || equalOctaveRatio !== 2) ? 'Custom' : t.era}
                       </div>
+                      <div className="tuning-a4-chip">
+                        <label className="control-label">A4</label>
+                        <select value={a4} onChange={e => setA4(Number(e.target.value))} className="control-select">
+                          {A4_OPTIONS.map(o => <option key={o.value} value={o.value}>{o.label}</option>)}
+                        </select>
+                      </div>
                     </div>
                     <p className="tuning-info-desc">{t.desc}</p>
 
@@ -231,15 +279,32 @@ export default function App() {
                     )}
                   </div>
 
-                  <IntervalWheel
-                    activeNotes={activeNotes}
-                    tuningKey={tuningKey}
-                    a4={a4}
-                    equalDivisions={equalDivisions}
-                    equalOctaveRatio={equalOctaveRatio}
-                  />
-
                   <Oscilloscope analyserRef={analyserRef} />
+
+                  {/* Live frequency readout */}
+                  <div className="freq-readout">
+                    {activeNotes.size === 0 ? (
+                      <span className="freq-readout-hint">play notes to see frequencies</span>
+                    ) : (
+                      [...activeNotes].sort((a, b) => a - b).map(midi => {
+                        const opts = tuningKey === 'equal' ? { divisions: equalDivisions, octaveRatio: equalOctaveRatio } : {}
+                        const freq = getFrequency(midi, tuningKey, a4, opts)
+                        const eqFreq = getFrequency(midi, 'equal', a4, {})
+                        const cents = 1200 * Math.log2(freq / eqFreq)
+                        const name = NOTE_NAMES[midi % 12]
+                        const octave = Math.floor(midi / 12) - 1
+                        const centsStr = (cents >= 0 ? '+' : '') + cents.toFixed(1) + '¢'
+                        const centsClass = Math.abs(cents) < 0.5 ? '' : cents > 0 ? ' freq-sharp' : ' freq-flat'
+                        return (
+                          <div key={midi} className="freq-row">
+                            <span className="freq-note">{name}<span className="freq-octave">{octave}</span></span>
+                            <span className="freq-hz">{freq.toFixed(2)} Hz</span>
+                            <span className={`freq-cents${centsClass}`}>{centsStr}</span>
+                          </div>
+                        )
+                      })
+                    )}
+                  </div>
 
                   <div className="keyboard-container">
                     <Keyboard baseOctave={baseOctave} activeNotes={activeNotes} onNoteOn={handleNoteOn} onNoteOff={handleNoteOff} />
@@ -254,12 +319,30 @@ export default function App() {
           {activeTab === 'freeplay' && (
             <div className="tab-pane">
               <div className="freeplay-headline">
-                <span className="freeplay-tuning-name">{t.name}</span>
+                <span className="freeplay-tuning-name">Free Play</span>
                 <span className="freeplay-hint">play notes · watch the wave</span>
               </div>
               <Oscilloscope analyserRef={analyserRef} />
-              <div className="keyboard-container">
-                <Keyboard baseOctave={baseOctave} activeNotes={activeNotes} onNoteOn={handleNoteOn} onNoteOff={handleNoteOff} />
+              <div className="freeplay-keyboard-area">
+                <div className="freeplay-piano-controls">
+                  <div className="control-chip">
+                    <label className="control-label">Timbre</label>
+                    <select value={waveform} onChange={e => setWaveform(e.target.value)} className="control-select">
+                      {WAVEFORMS.map(w => <option key={w} value={w}>{w.charAt(0).toUpperCase() + w.slice(1)}</option>)}
+                    </select>
+                  </div>
+                  <div className="control-chip">
+                    <label className="control-label">Octave</label>
+                    <div className="octave-stepper">
+                      <button className="oct-btn" onClick={() => setBaseOctave(o => Math.max(1, o - 1))}>−</button>
+                      <span className="oct-val">{baseOctave}</span>
+                      <button className="oct-btn" onClick={() => setBaseOctave(o => Math.min(7, o + 1))}>+</button>
+                    </div>
+                  </div>
+                </div>
+                <div className="keyboard-container">
+                  <Keyboard baseOctave={baseOctave} activeNotes={activeNotes} onNoteOn={handleNoteOn} onNoteOff={handleNoteOff} />
+                </div>
               </div>
             </div>
           )}

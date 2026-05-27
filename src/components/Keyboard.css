@@ -29,6 +29,14 @@
   background: #e8f0fe;
 }
 
+.key.white.in-scale {
+  background: #fdf2e0;
+}
+
+.key.white.in-scale:hover {
+  background: #fce0b8;
+}
+
 .key.white.active {
   background: #c7d9fd;
   border-color: #93b4f0;
@@ -44,6 +52,14 @@
 
 .key.black:hover {
   background: #2d2c29;
+}
+
+.key.black.in-scale {
+  background: #3d2e18;
+}
+
+.key.black.in-scale:hover {
+  background: #4d3a22;
 }
 
 .key.black.active {
