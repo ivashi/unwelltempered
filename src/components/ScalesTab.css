@@ -232,14 +232,23 @@
   font-size: 11px;
   color: var(--text-secondary);
   line-height: 1.65;
+  overflow-wrap: break-word;
 }
 
 @media (max-width: 640px) {
   .scales-main-row {
     grid-template-columns: 1fr;
-    flex: none;           /* don't stretch to fill parent — avoids huge gap between rows */
+    /* width:100% + min-width:0 constrains the grid to the viewport so 1fr is bounded */
+    width: 100%;
+    min-width: 0;
+    flex: none;
     align-content: start;
   }
+
+  /* Grid items must opt in to shrinking below their content size */
+  .scales-picker-section,
+  .scales-right { min-width: 0; }
+  .scale-info-card { min-width: 0; max-width: 100%; }
 
   .scale-info-top {
     flex-direction: column;

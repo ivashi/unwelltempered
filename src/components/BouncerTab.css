@@ -191,3 +191,29 @@
   text-transform: uppercase;
   white-space: nowrap;
 }
+
+@media (max-width: 640px) {
+  .bouncer-controls {
+    padding: 8px 12px;
+    gap: 6px;
+  }
+
+  .bouncer-btn,
+  .bouncer-speed-btn {
+    padding: 7px 11px;
+  }
+
+  .bouncer-note-toggles {
+    flex-wrap: wrap;
+    gap: 4px;
+  }
+
+  .bouncer-note-btn {
+    padding: 6px 8px;
+    min-width: 30px;
+  }
+
+  .bouncer-slider { width: 60px; }
+
+  .bouncer-stat { display: none; }
+}

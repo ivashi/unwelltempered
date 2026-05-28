@@ -419,3 +419,10 @@
 .seq-mel-cell.is-on      .seq-mel-note { color: var(--text-secondary); }
 .seq-mel-cell.is-current .seq-mel-note { color: var(--accent); }
 .seq-mel-cell.is-selected .seq-mel-note { color: var(--text-primary); }
+
+@media (max-width: 640px) {
+  .seq-channel-strip { width: 100px; }
+  .seq-arm-hint { display: none; }
+  .seq-slider { width: 70px; }
+  .seq-fader-val { display: none; }
+}

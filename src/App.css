@@ -652,9 +652,22 @@ input[type='range'].equal-slider::-moz-range-thumb {
   }
   .sequencer { min-width: 580px; }
 
-  /* ── Keyboard container: slightly shorter ── */
+  /* ── Keyboard container: matches reduced key height ── */
   .keyboard-container {
-    height: 140px;
-    min-height: 140px;
+    height: 130px;
+    min-height: 130px;
+    overflow: hidden;
+  }
+
+  /* ── Allow canvas tabs to scroll on mobile (needed for Wave page) ── */
+  .tab-pane--canvas {
+    overflow-y: auto;
+  }
+
+  /* ── In FreePlay: oscilloscope is a direct tab-pane child; grow it to fill the gap ── */
+  .tab-pane > .oscilloscope {
+    flex: 1;
+    height: auto;
+    min-height: 80px;
   }
 }

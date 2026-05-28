@@ -103,3 +103,12 @@
 .key.black .key-kb {
   color: #444;
 }
+
+@media (max-width: 640px) {
+  .keyboard-wrap { height: 130px; }
+  .key.white { height: 130px; }
+  .key.black { height: 82px; }
+  .key-kb { display: none; }
+  .key-note { font-size: 9px; }
+  .key-bottom { padding-bottom: 5px; }
+}

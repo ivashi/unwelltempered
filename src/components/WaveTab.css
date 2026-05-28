@@ -211,4 +211,48 @@
   height: 168px;
   min-height: 168px;
   position: relative;
+  overflow: hidden;
+}
+
+@media (max-width: 640px) {
+  /* wave-tab keeps flex:1 from desktop, just change overflow */
+  .wave-tab {
+    overflow-y: hidden;
+  }
+
+  .wave-designer {
+    flex-direction: column;
+    /* Keep flex:1 from desktop so wave-left can grow */
+    overflow: hidden;
+  }
+
+  /* Wave canvas area grows to fill all remaining space */
+  .wave-left {
+    flex: 1;
+    min-height: 0;
+    padding: 12px 14px 10px;
+    border-right: none;
+    border-bottom: 1px solid var(--border);
+  }
+
+  /* Harmonics section is fixed height and scrollable */
+  .wave-right {
+    flex: none;
+    height: 140px;
+    overflow-y: auto;
+    padding: 10px 14px;
+    scrollbar-width: thin;
+    scrollbar-color: var(--border-strong) transparent;
+  }
+
+  .wave-section-sub { display: none; }
+
+  .wave-keyboard-area {
+    padding: 8px 14px 0;
+  }
+
+  .keyboard-container {
+    height: 130px;
+    min-height: 130px;
+  }
 }
